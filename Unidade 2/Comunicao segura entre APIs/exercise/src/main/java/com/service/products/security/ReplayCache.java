@@ -1,9 +1,9 @@
-package com.exemplo.hmacapi.security;
+package com.service.products.security;
+
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.springframework.stereotype.Component;
 
 @Component
 public class ReplayCache {
@@ -23,3 +23,4 @@ public class ReplayCache {
         seen.values().removeIf(expiresAt -> expiresAt < now);
     }
 }
+

@@ -1,22 +1,19 @@
-package com.exemplo.hmacapi.security;
+package com.service.products.security;
+
+import com.service.products.config.HmacProperties;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.exemplo.hmacapi.config.HmacProperties;
-
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class HmacAuthenticationFilter extends OncePerRequestFilter {
@@ -24,11 +21,16 @@ public class HmacAuthenticationFilter extends OncePerRequestFilter {
     public static final String H_CONSUMER = "X-Consumer-Id";
     public static final String H_TIMESTAMP = "X-Timestamp";
     public static final String H_SIGNATURE = "X-Signature";
+    public static final String H_MAC = "X-Mac";
 
-    private static final Logger log = LoggerFactory.getLogger(HmacAuthenticationFilter.class);
+    @Autowired
+    private HmacProperties props;
 
-    private final HmacProperties props;
-    private final ReplayCache replayCache;
+    @Autowired
+    private ReplayCache replayCache;
+
+    public HmacAuthenticationFilter() {
+    }
 
     public HmacAuthenticationFilter(HmacProperties props, ReplayCache replayCache) {
         this.props = props;
@@ -37,7 +39,8 @@ public class HmacAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/api/");
+        String uri = request.getRequestURI();
+        return !uri.startsWith("/api/");
     }
 
     @Override
@@ -48,14 +51,18 @@ public class HmacAuthenticationFilter extends OncePerRequestFilter {
         String timestamp = request.getHeader(H_TIMESTAMP);
         String signature = request.getHeader(H_SIGNATURE);
 
+        if (signature == null || signature.isBlank()) {
+            signature = request.getHeader(H_MAC);
+        }
+
         if (isBlank(consumerId) || isBlank(timestamp) || isBlank(signature)) {
-            reject(response, "Cabeçalhos de autenticação ausentes", "headers ausentes");
+            reject(response, "Cabeçalhos de autenticação ausentes");
             return;
         }
 
         String secret = props.getConsumers().get(consumerId);
         if (secret == null) {
-            reject(response, "Credenciais inválidas", "consumidor desconhecido: " + sanitize(consumerId));
+            reject(response, "Consumidor não autorizado");
             return;
         }
 
@@ -63,14 +70,13 @@ public class HmacAuthenticationFilter extends OncePerRequestFilter {
         try {
             ts = Long.parseLong(timestamp);
         } catch (NumberFormatException e) {
-            reject(response, "Timestamp inválido", "timestamp não numérico");
+            reject(response, "Timestamp inválido");
             return;
         }
 
         long drift = Math.abs(Instant.now().getEpochSecond() - ts);
         if (drift > props.getToleranceSeconds()) {
-            reject(response, "Timestamp fora da janela permitida (possível replay)",
-                    "timestamp fora da janela, diferença de " + drift + "s, consumidor = " + consumerId);
+            reject(response, "Timestamp fora da janela permitida (possível replay attack)");
             return;
         }
 
@@ -85,22 +91,20 @@ public class HmacAuthenticationFilter extends OncePerRequestFilter {
         String expected = HmacSigner.sign(secret, request.getMethod(), path, timestamp, consumerId, body);
 
         if (!HmacSigner.constantTimeEquals(expected, signature.toLowerCase())) {
-            reject(response, "Credenciais inválidas", "MAC inválido, consumidor = " + consumerId);
+            reject(response, "Código MAC inválido");
             return;
         }
 
         Duration ttl = Duration.ofSeconds(props.getToleranceSeconds() * 2 + 1);
         if (!replayCache.register(consumerId, expected, ttl)) {
-            reject(response, "Requisição repetida (replay detectado)", "replay dentro da janela, consumidor = " + consumerId);
+            reject(response, "Requisição repetida (replay attack detectado)");
             return;
         }
 
-        log.info("Requisição autenticada: consumidor = {} {} {}", consumerId, request.getMethod(), path);
         chain.doFilter(new CachedBodyRequestWrapper(request, body), response);
     }
 
-    private void reject(HttpServletResponse response, String message, String logReason) throws IOException {
-        log.warn("401 - {}", logReason);
+    private void reject(HttpServletResponse response, String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
@@ -108,7 +112,8 @@ public class HmacAuthenticationFilter extends OncePerRequestFilter {
         response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"" + message + "\"}");
     }
 
-    private static boolean isBlank(String s) { return s == null || s.isBlank(); }
-
-    private static String sanitize(String s) { return s.replaceAll("[\\r\\n]", "_"); }
+    private static boolean isBlank(String s) {
+        return s == null || s.isBlank();
+    }
 }
+
