@@ -5,7 +5,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,14 +22,8 @@ public class HmacAuthenticationFilter extends OncePerRequestFilter {
     public static final String H_SIGNATURE = "X-Signature";
     public static final String H_MAC = "X-Mac";
 
-    @Autowired
-    private HmacProperties props;
-
-    @Autowired
-    private ReplayCache replayCache;
-
-    public HmacAuthenticationFilter() {
-    }
+    private final HmacProperties props;
+    private final ReplayCache replayCache;
 
     public HmacAuthenticationFilter(HmacProperties props, ReplayCache replayCache) {
         this.props = props;
@@ -116,4 +109,3 @@ public class HmacAuthenticationFilter extends OncePerRequestFilter {
         return s == null || s.isBlank();
     }
 }
-

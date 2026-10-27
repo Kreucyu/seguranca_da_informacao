@@ -4,9 +4,8 @@ import com.service.products.dto.CreateProductDTO;
 import com.service.products.dto.RecoveryProductDTO;
 import com.service.products.dto.UpdateProductDTO;
 import com.service.products.entities.Product;
-import com.service.products.exceptions.ProductException;
+import com.service.products.exceptions.ProductNotFoundException;
 import com.service.products.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,21 +14,14 @@ import java.util.List;
 @Service
 public class ProductService {
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+
+    public ProductService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
 
     @Transactional
     public RecoveryProductDTO createProduct(CreateProductDTO dto) {
-        if (dto.name() == null || dto.name().isBlank()) {
-            throw new ProductException("Nome do produto é obrigatório");
-        }
-        if (dto.price() == null) {
-            throw new ProductException("Preço do produto é obrigatório");
-        }
-        if (dto.quantity() == null) {
-            throw new ProductException("Quantidade do produto é obrigatória");
-        }
-
         Product product = new Product();
         product.setName(dto.name());
         product.setDescription(dto.description());
@@ -51,27 +43,19 @@ public class ProductService {
     @Transactional(readOnly = true)
     public RecoveryProductDTO getProductById(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductException("Produto com ID " + id + " não encontrado"));
+                .orElseThrow(() -> new ProductNotFoundException(id));
         return toDto(product);
     }
 
     @Transactional
     public RecoveryProductDTO updateProduct(Long id, UpdateProductDTO dto) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductException("Produto com ID " + id + " não encontrado"));
+                .orElseThrow(() -> new ProductNotFoundException(id));
 
-        if (dto.name() != null && !dto.name().isBlank()) {
-            product.setName(dto.name());
-        }
-        if (dto.description() != null) {
-            product.setDescription(dto.description());
-        }
-        if (dto.price() != null) {
-            product.setPrice(dto.price());
-        }
-        if (dto.quantity() != null) {
-            product.setQuantity(dto.quantity());
-        }
+        product.setName(dto.name());
+        product.setDescription(dto.description());
+        product.setPrice(dto.price());
+        product.setQuantity(dto.quantity());
 
         Product updatedProduct = productRepository.save(product);
         return toDto(updatedProduct);
@@ -80,7 +64,7 @@ public class ProductService {
     @Transactional
     public void deleteProductById(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductException("Produto com ID " + id + " não encontrado"));
+                .orElseThrow(() -> new ProductNotFoundException(id));
         productRepository.delete(product);
     }
 
@@ -94,4 +78,3 @@ public class ProductService {
         );
     }
 }
-

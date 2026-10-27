@@ -3,9 +3,8 @@ package com.service.products.controller;
 import com.service.products.dto.CreateProductDTO;
 import com.service.products.dto.RecoveryProductDTO;
 import com.service.products.dto.UpdateProductDTO;
-import com.service.products.exceptions.ProductException;
 import com.service.products.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,37 +15,35 @@ import java.util.List;
 @RequestMapping("/api/products")
 public class ProductController {
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
 
-    @PostMapping("/create")
-    public ResponseEntity<RecoveryProductDTO> createProduct(@RequestBody CreateProductDTO createProductDto) {
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
+
+    @PostMapping
+    public ResponseEntity<RecoveryProductDTO> createProduct(@Valid @RequestBody CreateProductDTO createProductDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(createProductDto));
     }
 
-    @GetMapping("/list")
+    @GetMapping
     public ResponseEntity<List<RecoveryProductDTO>> getAllProducts() {
         return ResponseEntity.status(HttpStatus.OK).body(productService.getAllProducts());
     }
 
-    @GetMapping("/details/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<RecoveryProductDTO> getProductById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(productService.getProductById(id));
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<RecoveryProductDTO> updateProduct(@PathVariable Long id, @RequestBody UpdateProductDTO updateProductDto) {
+    @PutMapping("/{id}")
+    public ResponseEntity<RecoveryProductDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody UpdateProductDTO updateProductDto) {
         return ResponseEntity.status(HttpStatus.OK).body(productService.updateProduct(id, updateProductDto));
     }
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteProductById(@PathVariable Long id) {
-        try {
-            productService.deleteProductById(id);
-            return ResponseEntity.ok("Produto deletado com sucesso");
-        } catch (ProductException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProductById(@PathVariable Long id) {
+        productService.deleteProductById(id);
+        return ResponseEntity.noContent().build();
     }
 }
-
