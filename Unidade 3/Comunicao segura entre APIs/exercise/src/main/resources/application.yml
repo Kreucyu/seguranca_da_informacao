@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: hmac-api
+  datasource:
+    url: jdbc:h2:mem:hmacdb;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  h2:
+    console:
+      enabled: false   # console desabilitado por segurança
+
+security:
+  hmac:
+    tolerance-seconds: 60      # janela de validade do timestamp (anti-replay)
+    max-body-bytes: 1048576    # 1 MB
+    consumers:                 # consumidor -> chave secreta compartilhada
+      # Em produção, injete via variável de ambiente / secret manager.
+      consumidor-a: ${CONSUMER_A_SECRET:segredo-do-consumidor-A-troque-em-producao-0001}
+      consumidor-b: ${CONSUMER_B_SECRET:segredo-do-consumidor-B-troque-em-producao-0002}
