@@ -3,6 +3,7 @@ package com.exemplo.hmacapi.produto;
 import java.net.URI;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,41 +18,42 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/produtos")
-public class ProdutoController {
+@RequestMapping("/api/products")
+public class ProductController {
 
-    private final ProdutoService service;
+    @Autowired
+    private ProductService service;
 
-    public ProdutoController(ProdutoService service) {
+    public ProductController(ProductService service) {
         this.service = service;
     }
 
     @PostMapping
-    public ResponseEntity<ProdutoResponse> criar(@Valid @RequestBody ProdutoRequest req) {
-        ProdutoResponse criado = service.criar(req);
+    public ResponseEntity<ProductResponseDTO> create(@Valid @RequestBody ProductRequestDTO req) {
+        ProductResponseDTO criado = service.create(req);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}").buildAndExpand(criado.id()).toUri();
         return ResponseEntity.created(location).body(criado);
     }
 
     @GetMapping
-    public List<ProdutoResponse> listar() {
-        return service.listar();
+    public List<ProductResponseDTO> list() {
+        return service.list();
     }
 
     @GetMapping("/{id}")
-    public ProdutoResponse buscar(@PathVariable Long id) {
-        return service.buscar(id);
+    public ProductResponseDTO findById(@PathVariable Long id) {
+        return service.findById(id);
     }
 
     @PutMapping("/{id}")
-    public ProdutoResponse atualizar(@PathVariable Long id, @Valid @RequestBody ProdutoRequest req) {
-        return service.atualizar(id, req);
+    public ProductResponseDTO update(@PathVariable Long id, @Valid @RequestBody ProductRequestDTO req) {
+        return service.update(id, req);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> remover(@PathVariable Long id) {
-        service.remover(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

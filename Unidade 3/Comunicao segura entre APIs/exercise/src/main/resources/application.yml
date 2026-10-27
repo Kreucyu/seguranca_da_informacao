@@ -11,13 +11,12 @@ spring:
     open-in-view: false
   h2:
     console:
-      enabled: false   # console desabilitado por segurança
+      enabled: false
 
 security:
   hmac:
-    tolerance-seconds: 60      # janela de validade do timestamp (anti-replay)
-    max-body-bytes: 1048576    # 1 MB
-    consumers:                 # consumidor -> chave secreta compartilhada
-      # Em produção, injete via variável de ambiente / secret manager.
+    tolerance-seconds: 60
+    max-body-bytes: 1048576
+    consumers:
       consumidor-a: ${CONSUMER_A_SECRET:segredo-do-consumidor-A-troque-em-producao-0001}
       consumidor-b: ${CONSUMER_B_SECRET:segredo-do-consumidor-B-troque-em-producao-0002}

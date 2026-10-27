@@ -8,9 +8,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public record ProdutoRequest(
-        @NotBlank @Size(max = 120) String nome,
-        @Size(max = 500) String descricao,
-        @NotNull @DecimalMin("0.00") BigDecimal preco,
-        @NotNull @Min(0) Integer quantidade) {
+public record ProductRequestDTO(
+        @NotBlank @Size(max = 120) String name,
+        @Size(max = 500) String description,
+        @NotNull @DecimalMin("0.00") BigDecimal price,
+        @NotNull @Min(0) Integer quantity) {
 }
