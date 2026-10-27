@@ -29,7 +29,7 @@ public class Produto {
     @Column(nullable = false)
     private Integer quantidade;
 
-    protected Produto() {} // exigido pelo JPA
+    protected Produto() {}
 
     public Produto(String nome, String descricao, BigDecimal preco, Integer quantidade) {
         atualizar(nome, descricao, preco, quantidade);

@@ -10,7 +10,6 @@ import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 
-/** Permite ler o corpo para calcular o MAC e depois entregá-lo ao controller. */
 public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
 
     private final byte[] body;

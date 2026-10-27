@@ -18,13 +18,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * Autenticação HMAC. Cabeçalhos exigidos em toda requisição /api/**:
- *   X-Consumer-Id : identificador do consumidor
- *   X-Timestamp   : epoch em segundos
- *   X-Signature   : HMAC-SHA256 (hex) da string canônica (ver HmacSigner)
- * Qualquer falha => 401 e a operação NÃO é executada.
- */
 @Component
 public class HmacAuthenticationFilter extends OncePerRequestFilter {
 
@@ -77,7 +70,7 @@ public class HmacAuthenticationFilter extends OncePerRequestFilter {
         long drift = Math.abs(Instant.now().getEpochSecond() - ts);
         if (drift > props.getToleranceSeconds()) {
             reject(response, "Timestamp fora da janela permitida (possível replay)",
-                    "timestamp fora da janela, diferença de " + drift + "s, consumidor=" + consumerId);
+                    "timestamp fora da janela, diferença de " + drift + "s, consumidor = " + consumerId);
             return;
         }
 
@@ -92,18 +85,17 @@ public class HmacAuthenticationFilter extends OncePerRequestFilter {
         String expected = HmacSigner.sign(secret, request.getMethod(), path, timestamp, consumerId, body);
 
         if (!HmacSigner.constantTimeEquals(expected, signature.toLowerCase())) {
-            reject(response, "Credenciais inválidas", "MAC inválido, consumidor=" + consumerId);
+            reject(response, "Credenciais inválidas", "MAC inválido, consumidor = " + consumerId);
             return;
         }
 
-        // Só registra no cache depois de validar o MAC (evita "envenenar" o cache).
         Duration ttl = Duration.ofSeconds(props.getToleranceSeconds() * 2 + 1);
         if (!replayCache.register(consumerId, expected, ttl)) {
-            reject(response, "Requisição repetida (replay detectado)", "replay dentro da janela, consumidor=" + consumerId);
+            reject(response, "Requisição repetida (replay detectado)", "replay dentro da janela, consumidor = " + consumerId);
             return;
         }
 
-        log.info("Requisição autenticada: consumidor={} {} {}", consumerId, request.getMethod(), path);
+        log.info("Requisição autenticada: consumidor = {} {} {}", consumerId, request.getMethod(), path);
         chain.doFilter(new CachedBodyRequestWrapper(request, body), response);
     }
 
