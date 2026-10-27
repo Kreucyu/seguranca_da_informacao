@@ -19,27 +19,27 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    @PostMapping(value = {"", "/create"})
+    @PostMapping("/create")
     public ResponseEntity<RecoveryProductDTO> createProduct(@RequestBody CreateProductDTO createProductDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(createProductDto));
     }
 
-    @GetMapping(value = {"", "/list"})
+    @GetMapping("/list")
     public ResponseEntity<List<RecoveryProductDTO>> getAllProducts() {
         return ResponseEntity.status(HttpStatus.OK).body(productService.getAllProducts());
     }
 
-    @GetMapping(value = {"/{id}", "/details/{id}"})
+    @GetMapping("/details/{id}")
     public ResponseEntity<RecoveryProductDTO> getProductById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(productService.getProductById(id));
     }
 
-    @PutMapping(value = {"/{id}", "/update/{id}"})
+    @PutMapping("/update/{id}")
     public ResponseEntity<RecoveryProductDTO> updateProduct(@PathVariable Long id, @RequestBody UpdateProductDTO updateProductDto) {
         return ResponseEntity.status(HttpStatus.OK).body(productService.updateProduct(id, updateProductDto));
     }
 
-    @DeleteMapping(value = {"/{id}", "/delete/{id}"})
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteProductById(@PathVariable Long id) {
         try {
             productService.deleteProductById(id);
