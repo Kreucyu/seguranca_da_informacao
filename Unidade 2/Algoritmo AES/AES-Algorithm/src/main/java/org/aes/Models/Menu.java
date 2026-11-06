@@ -89,12 +89,16 @@ public class Menu {
             initializationVector = getVector("iv", sc);
         }
 
-        return new CypherData(option == 1 ? "cript" : "decript",
-                funcOption == 1 ? "file" : "text",
-                originalValue,
-                key,
-                operationMode == 1 ? "ECB" : "CBC",
-                initializationVector);
+        CypherData cypherData = new CypherData();
+
+        cypherData.setBytedText(originalValue);
+        cypherData.setKey(key);
+        cypherData.setInitializationVector(initializationVector);
+        cypherData.setFinalObjectType(funcOption == 1 ? "file" : "text");
+        cypherData.setOperation(option == 1 ? "encrypt" : "decrypt");
+        cypherData.setOperationMode(operationMode == 1 ? "ECB" : "CBC");
+
+        return cypherData;
     }
 
     private static byte[] getVector(String type, Scanner sc) {

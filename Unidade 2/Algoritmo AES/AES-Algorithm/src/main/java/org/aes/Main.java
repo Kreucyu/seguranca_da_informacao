@@ -1,5 +1,6 @@
 package org.aes;
 
+import org.aes.Core.AES;
 import org.aes.Models.CypherData;
 import org.aes.Models.Menu;
 
@@ -9,10 +10,13 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
+        CypherData cypherData;
+        AES aes;
         while(true) {
-            CypherData data = Menu.loadMenuAndGetValues(sc);
-            if(data == null) continue;
-
+            cypherData = Menu.loadMenuAndGetValues(sc);
+            if(cypherData == null) continue;
+            aes = new AES();
+            aes.start(cypherData);
         }
     }
 }

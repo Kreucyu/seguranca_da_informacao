@@ -3,7 +3,7 @@ package org.aes.Core;
 public class ShiftRows {
     public ShiftRows() {}
 
-    public static void shiftRows() {}
+    public void shiftRows() {}
 
-    public static void invShiftRows() {}
+    public void invShiftRows() {}
 }
