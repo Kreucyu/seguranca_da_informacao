@@ -18,7 +18,8 @@ public class AES {
         }
         if(cypherData.getOperation().equals("encrypt")) {
             EncryptationService encryptationService = new EncryptationService();
-            encryptationService.encrypt(cypherData);
+            byte[] ecryptedText = encryptationService.encrypt(cypherData);
+            toStringTextInHex(ecryptedText);
         } else {
             DecryptationService decryptationService = new DecryptationService();
             decryptationService.decrypt(cypherData);
@@ -31,5 +32,13 @@ public class AES {
             newText[i] = (byte) (text[i] ^ iv[i % iv.length]);
         }
         return newText;
+    }
+
+    private String toStringTextInHex(byte[] bytes) {
+        StringBuilder hex = new StringBuilder();
+        for (byte b : bytes) {
+            hex.append(String.format("%02X", b & 0xFF));
+        }
+        return hex.toString();
     }
 }

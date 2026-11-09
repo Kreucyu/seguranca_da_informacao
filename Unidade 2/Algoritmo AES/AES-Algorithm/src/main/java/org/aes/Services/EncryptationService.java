@@ -24,7 +24,7 @@ public class EncryptationService {
         this.subBytes = new SubBytes();
     }
 
-    public void encrypt(CypherData data) {
+    public byte[] encrypt(CypherData data) {
         byte[][][] roundKeys = keyExpansion.keyExpansion(State.getMatrix(data.getKey()));
         byte[] paddedText = applyPadding(data.getBytedText());
         List<byte[][]> allWords = getWordsMatrix(paddedText);
@@ -44,10 +44,12 @@ public class EncryptationService {
 
             allWords.set(i, actualWord);
         }
+        return getEncryptedBytes(allWords);
     }
 
     private byte[] applyPadding(byte[] originalText) {
         int paddingLength = 16 - (originalText.length % 16);
+
         byte[] paddedText = Arrays.copyOf(
                 originalText,
                 originalText.length + paddingLength
@@ -62,7 +64,7 @@ public class EncryptationService {
 
     private List<byte[][]> getWordsMatrix(byte[] paddedText) {
         List<byte[][]> allWords = new ArrayList<>();
-        int quantity = Math.round((float) paddedText.length + 15) / 16;
+        int quantity = paddedText.length / 16;
 
         for(int block = 0; block < quantity; block++) {
             byte[][] partialWord = new byte[4][4];
@@ -76,5 +78,19 @@ public class EncryptationService {
             allWords.add(partialWord);
         }
         return allWords;
+    }
+
+    private byte[] getEncryptedBytes(List<byte[][]> allWords) {
+        byte[] encryptedText = new byte[allWords.size() * 16];
+        int index = 0;
+
+        for (byte[][] word : allWords) {
+            for (int column = 0; column < 4; column++) {
+                for (int row = 0; row < 4; row++) {
+                    encryptedText[index++] = word[row][column];
+                }
+            }
+        }
+        return encryptedText;
     }
 }
