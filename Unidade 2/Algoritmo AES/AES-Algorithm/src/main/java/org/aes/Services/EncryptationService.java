@@ -15,6 +15,7 @@ public class EncryptationService {
     private final MixColumns mixColumns;
     private final ShiftRows shiftRows;
     private final SubBytes subBytes;
+    private final DataService dataService;
 
     public EncryptationService() {
         this.addRoundKey = new AddRoundKey();
@@ -22,12 +23,13 @@ public class EncryptationService {
         this.mixColumns = new MixColumns();
         this.shiftRows = new ShiftRows();
         this.subBytes = new SubBytes();
+        this.dataService = new DataService();
     }
 
     public byte[] encrypt(CypherData data) {
         byte[][][] roundKeys = keyExpansion.keyExpansion(State.getMatrix(data.getKey()));
-        byte[] paddedText = applyPadding(data.getBytedText());
-        List<byte[][]> allWords = getWordsMatrix(paddedText);
+        byte[] paddedText = dataService.applyPadding(data.getBytedText());
+        List<byte[][]> allWords = dataService.getWordsMatrix(paddedText);
 
         for(int i = 0; i < allWords.size(); i++) {
             byte[][] actualWord = allWords.get(i);
@@ -45,39 +47,6 @@ public class EncryptationService {
             allWords.set(i, actualWord);
         }
         return getEncryptedBytes(allWords);
-    }
-
-    private byte[] applyPadding(byte[] originalText) {
-        int paddingLength = 16 - (originalText.length % 16);
-
-        byte[] paddedText = Arrays.copyOf(
-                originalText,
-                originalText.length + paddingLength
-        );
-
-        for (int i = originalText.length; i < paddedText.length; i++) {
-            paddedText[i] = (byte) paddingLength;
-        }
-
-        return paddedText;
-    }
-
-    private List<byte[][]> getWordsMatrix(byte[] paddedText) {
-        List<byte[][]> allWords = new ArrayList<>();
-        int quantity = paddedText.length / 16;
-
-        for(int block = 0; block < quantity; block++) {
-            byte[][] partialWord = new byte[4][4];
-
-            for(int i = 0; i < 4; i++) {
-                for(int j = 0; j < 4; j++) {
-                    int actualWord = (block * 16) + (j * 4) + i;
-                    partialWord[i][j] = paddedText[actualWord];
-                }
-            }
-            allWords.add(partialWord);
-        }
-        return allWords;
     }
 
     private byte[] getEncryptedBytes(List<byte[][]> allWords) {

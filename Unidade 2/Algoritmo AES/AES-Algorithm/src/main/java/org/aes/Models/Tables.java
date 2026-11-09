@@ -85,5 +85,12 @@ public class Tables {
             {3, 1, 1, 2}
     };
 
+    public static final int[][] INVERTED_MULTIPLICATION_MATRIX = {
+            {0x0e, 0x0b, 0x0d, 0x09},
+            {0x09, 0x0e, 0x0b, 0x0d},
+            {0x0d, 0x09, 0x0e, 0x0b},
+            {0x0b, 0x0d, 0x09, 0x0e}
+    };
+
     public Tables() {}
 }

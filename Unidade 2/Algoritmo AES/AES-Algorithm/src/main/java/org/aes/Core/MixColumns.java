@@ -2,10 +2,20 @@ package org.aes.Core;
 
 import org.aes.Models.Tables;
 
+import java.util.Objects;
+
 public class MixColumns {
     public MixColumns() {}
 
     public byte[][] mixColumns(byte[][] wordMatrix) {
+        return doMix(wordMatrix, "default");
+    }
+
+    public byte[][] invMixColumns(byte[][] wordMatrix) {
+        return doMix(wordMatrix, "inverted");
+    }
+
+    private byte[][] doMix(byte[][] wordMatrix, String type) {
         byte[][] mixedMatrix = new byte[4][4];
 
         for(int row = 0; row < 4; row++) {
@@ -13,15 +23,16 @@ public class MixColumns {
                 int value = 0;
                 for(int i = 0; i < 4; i++) {
                     int term = wordMatrix[i][col];
-                    value ^= galoisMultiplication(term, Tables.MULTIPLICATION_MATRIX[row][i]);
+                    value ^= galoisMultiplication
+                            (term, Objects.equals(type, "inverted")
+                                    ? Tables.INVERTED_MULTIPLICATION_MATRIX[row][i]
+                                    : Tables.MULTIPLICATION_MATRIX[row][i]);
                 }
                 mixedMatrix[row][col] = (byte) value;
             }
         }
         return mixedMatrix;
     }
-
-    public void invMixColumns() {}
 
     private int galoisMultiplication(int term, int matrixValue) {
         if(term == 0 || matrixValue == 0) return 0;

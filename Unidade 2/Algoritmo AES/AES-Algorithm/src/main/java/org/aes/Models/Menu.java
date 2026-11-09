@@ -1,5 +1,7 @@
 package org.aes.Models;
 
+import org.aes.Services.FileService;
+
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
@@ -51,21 +53,7 @@ public class Menu {
         byte[] originalValue = null;
 
         if(funcOption == 1) {
-
-            JFileChooser chooser = new JFileChooser();
-            chooser.setDialogTitle("Selecione um arquivo");
-
-            int result = chooser.showOpenDialog(null);
-
-            if (result == JFileChooser.APPROVE_OPTION) {
-                File file = chooser.getSelectedFile();
-                System.out.println("\nSelecionado: " + file.getAbsolutePath());
-                originalValue = Files.readAllBytes(file.toPath());
-            } else {
-                System.out.println("\nNenhum arquivo selecionado.");
-                return null;
-            }
-
+            originalValue = FileService.chooseFile();
         } else if (funcOption == 2) {
             System.out.println("\nDigite o seu texto: ");
             String fullText = sc.nextLine();

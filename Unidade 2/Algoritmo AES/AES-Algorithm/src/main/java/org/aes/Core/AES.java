@@ -3,13 +3,17 @@ package org.aes.Core;
 import org.aes.Models.CypherData;
 import org.aes.Services.DecryptationService;
 import org.aes.Services.EncryptationService;
+import org.aes.Services.FileService;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Objects;
 
 public class AES {
     public AES() {}
 
-    public void start(CypherData cypherData) {
+    public void start(CypherData cypherData) throws IOException {
         if(Objects.equals(cypherData.getOperationMode(), "CBC")) {
             if(cypherData.getInitializationVector() == null || cypherData.getBytedText() == null) {
                 throw new RuntimeException("\nValores inválidos");
@@ -18,8 +22,15 @@ public class AES {
         }
         if(cypherData.getOperation().equals("encrypt")) {
             EncryptationService encryptationService = new EncryptationService();
-            byte[] ecryptedText = encryptationService.encrypt(cypherData);
-            toStringTextInHex(ecryptedText);
+            byte[] encryptedText = encryptationService.encrypt(cypherData);
+            if(cypherData.getFinalObjectType().equals("file")) {
+                File file = FileService.getSaveLocation();
+                if(file != null) {
+                    Files.write(file.toPath(), encryptedText);
+                }
+            } else {
+                System.out.println(toStringTextInHex(encryptedText));
+            }
         } else {
             DecryptationService decryptationService = new DecryptationService();
             decryptationService.decrypt(cypherData);

@@ -5,16 +5,25 @@ import org.aes.Models.Tables;
 public class SubBytes {
     public SubBytes() {}
 
-    public byte[][] subBytes(byte[][] word) {
-        for(int i = 0; i < word.length; i++) {
-            for(int j = 0; j < word.length; j++) {
-                int row = (word[i][j] & 0xF0) >> 4;
-                int col = word[i][j] & 0x0F;
-                word[i][j] = (byte) Tables.SBOX[row][col];
+    public byte[][] subBytes(byte[][] wordMatrix) {
+        for(int i = 0; i < wordMatrix.length; i++) {
+            for(int j = 0; j < wordMatrix.length; j++) {
+                int row = (wordMatrix[i][j] & 0xF0) >> 4;
+                int col = wordMatrix[i][j] & 0x0F;
+                wordMatrix[i][j] = (byte) Tables.SBOX[row][col];
             }
         }
-        return word;
+        return wordMatrix;
     }
 
-    public void invSubBytes() {}
+    public byte[][] invSubBytes(byte[][] wordMatrix) {
+        for(int i = 0; i < wordMatrix.length; i++) {
+            for(int j = 0; j < wordMatrix.length; j++) {
+                int row = (wordMatrix[i][j] & 0xF0) >> 4;
+                int col = wordMatrix[i][j] & 0x0F;
+                wordMatrix[i][j] = (byte) Tables.INVERTED_SBOX[row][col];
+            }
+        }
+        return wordMatrix;
+    }
 }
