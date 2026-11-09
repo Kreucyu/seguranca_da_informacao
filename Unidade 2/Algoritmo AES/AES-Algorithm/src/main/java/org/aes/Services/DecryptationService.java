@@ -19,8 +19,8 @@ public class DecryptationService {
     }
 
     public void decrypt(CypherData data) {
-        addRoundKey.addRoundkey();
-        keyExpansion.keyExpansion();
+        addRoundKey.addRoundkey(null, null);
+        keyExpansion.keyExpansion(null);
         mixColumns.invMixColumns();
         shiftRows.invShiftRows();
         subBytes.invSubBytes();
