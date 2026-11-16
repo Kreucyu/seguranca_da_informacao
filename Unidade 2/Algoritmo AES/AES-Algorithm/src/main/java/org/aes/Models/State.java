@@ -8,10 +8,10 @@ public class State {
         byte[][] matrix = new byte[4][4];
 
         int k = 0;
-        for(int i = 0; i < 4; i++) {
-            for(int j = 0; j < 4; j++) {
+        for(int col = 0; col < 4; col++) {
+            for(int row = 0; row < 4; row++) {
                 if(k < key.length) {
-                    matrix[i][j] = key[k];
+                    matrix[row][col] = key[k];
                     k++;
                 }
             }

@@ -1,5 +1,7 @@
 package org.aes.Models;
 
+import java.io.File;
+
 public class CypherData {
 
     private String operation;
@@ -8,8 +10,18 @@ public class CypherData {
     private byte[] key;
     private String operationMode;
     private byte[] initializationVector;
+    private File outputFile;
 
-    public CypherData() {}
+    public CypherData() {
+    }
+
+    public File getOutputFile() {
+        return outputFile;
+    }
+
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
+    }
 
     public String getOperation() {
         return operation;

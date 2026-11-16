@@ -9,6 +9,16 @@ public class FileService {
 
     public FileService() {}
 
+    public static byte[] readFile(String path) throws IOException {
+        File file = new File(path);
+        if(!file.exists()) {
+            System.out.println("\nArquivo não encontrado: " + path);
+            return null;
+        }
+        System.out.println("\nArquivo lido: " + file.getAbsolutePath());
+        return Files.readAllBytes(file.toPath());
+    }
+
     public static byte[] chooseFile() throws IOException {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Selecione um arquivo");

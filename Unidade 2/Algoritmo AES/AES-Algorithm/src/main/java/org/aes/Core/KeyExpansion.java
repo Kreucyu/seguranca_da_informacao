@@ -15,53 +15,56 @@ public class KeyExpansion {
             throw new RuntimeException("\nTamanho de chave inválido");
         }
 
-        for(int i = 0; i < keyMatrix.length; i++) {
-            for (int j = 0; j < keyMatrix.length; j++) {
-                roundKeys[0][i][j] = keyMatrix[j][i];
+        byte[][] words = new byte[44][4];
+
+        for(int j = 0; j < 4; j++) {
+            for(int i = 0; i < 4; i++) {
+                words[j][i] = keyMatrix[i][j];
             }
         }
 
-        for(int i = 1; i < 11; i++) {
-            for(int j = 0; j < 4; j++) {
-                if(j == 0) {
-                    roundKeys[i][j] = getFirstWord(roundKeys[i-1][3], i, roundKeys[i-1][0]);
-                    continue;
+        for(int i = 4; i < 44; i++) {
+            byte[] temp = words[i - 1].clone();
+            if(i % 4 == 0) {
+                temp = getFirstWord(temp, i / 4);
+            }
+            words[i] = doXOR(words[i - 4], temp);
+        }
+
+        for(int r = 0; r < 11; r++) {
+            for(int col = 0; col < 4; col++) {
+                for(int row = 0; row < 4; row++) {
+                    roundKeys[r][row][col] = words[r * 4 + col][row];
                 }
-                roundKeys[i][j] = doXOR(roundKeys[i-1][j], roundKeys[i][j-1]);
             }
         }
         return roundKeys;
     }
 
-    private byte[] getFirstWord(byte[] lastWord, int actualRoundKey, byte[] lastFirstWord) {
+    private byte[] getFirstWord(byte[] lastWord, int actualRoundKey) {
         byte[] rotedWord = rotWord(lastWord);
         byte[] subbedWord = subWord(rotedWord);
         byte[] roundConstant = getRoundConstant(actualRoundKey);
-        byte[] xorWordFirst = doXOR(subbedWord, roundConstant);
-        return doXOR(lastFirstWord, xorWordFirst);
+        return doXOR(subbedWord, roundConstant);
     }
 
     private byte[] rotWord(byte[] word) {
-        byte[] originalWord = word.clone();
-
-        for(int i = 0; i < word.length; i++) {
-            if(i == 3) {
-                word[i] = originalWord[0];
-                break;
-            }
-            word[i] = originalWord[i + 1];
-        }
-        return word;
+        byte[] roted = new byte[4];
+        roted[0] = word[1];
+        roted[1] = word[2];
+        roted[2] = word[3];
+        roted[3] = word[0];
+        return roted;
     }
 
     private byte[] subWord(byte[] word) {
-
+        byte[] subbed = new byte[4];
         for(int i = 0; i < word.length; i++) {
             int row = (word[i] & 0xF0) >> 4;
             int col = word[i] & 0x0F;
-            word[i] = (byte) Tables.SBOX[row][col];
+            subbed[i] = (byte) Tables.SBOX[row][col];
         }
-        return word;
+        return subbed;
     }
 
     private byte[] getRoundConstant(int actualRoundKey) {

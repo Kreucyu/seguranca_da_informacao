@@ -26,6 +26,9 @@ public class DecryptationService {
     public byte[] decrypt(CypherData data) {
         byte[][][] roundKeys = keyExpansion.keyExpansion(State.getMatrix(data.getKey()));
         List<byte[][]> allWords = dataService.getWordsMatrix(data.getBytedText());
+        List<byte[][]> originalWords = data.getOperationMode().equals("CBC")
+                ? dataService.getWordsMatrix(data.getBytedText())
+                : null;
 
         for(int i = 0; i < allWords.size(); i++) {
             byte[][] actualWord = allWords.get(i);
@@ -40,6 +43,13 @@ public class DecryptationService {
             actualWord = shiftRows.invShiftRows(actualWord);
             actualWord = subBytes.invSubBytes(actualWord);
             actualWord = addRoundKey.addRoundkey(actualWord, roundKeys[0]);
+
+            if(data.getOperationMode().equals("CBC")) {
+                byte[][] previousBlock = (i == 0)
+                        ? State.getMatrix(data.getInitializationVector())
+                        : originalWords.get(i - 1);
+                actualWord = addRoundKey.addRoundkey(actualWord, previousBlock);
+            }
 
             allWords.set(i, actualWord);
         }

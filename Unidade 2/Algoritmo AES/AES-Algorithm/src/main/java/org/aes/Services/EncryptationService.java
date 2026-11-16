@@ -33,6 +33,14 @@ public class EncryptationService {
 
         for(int i = 0; i < allWords.size(); i++) {
             byte[][] actualWord = allWords.get(i);
+
+            if(data.getOperationMode().equals("CBC")) {
+                byte[][] previousBlock = (i == 0)
+                        ? State.getMatrix(data.getInitializationVector())
+                        : allWords.get(i - 1);
+                actualWord = addRoundKey.addRoundkey(actualWord, previousBlock);
+            }
+
             actualWord = addRoundKey.addRoundkey(actualWord, roundKeys[0]);
 
             for(int j = 1; j < roundKeys.length; j++) {

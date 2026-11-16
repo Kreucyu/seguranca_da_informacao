@@ -34,7 +34,7 @@ public class Menu {
                 System.out.println("\nO que você deseja " + function);
                 System.out.println("""
                         
-                        1 - Arquivo de texto (externo)
+                        1 - Arquivo (qualquer tipo / binário)
                         2 - Texto (escrito)
                         """);
                 funcOption = sc.nextInt();
@@ -51,9 +51,28 @@ public class Menu {
         if(funcOption == 0) return null;
 
         byte[] originalValue = null;
+        File outputFile = null;
 
         if(funcOption == 1) {
-            originalValue = FileService.chooseFile();
+            System.out.println("\nInforme o caminho do arquivo de entrada (ou pressione Enter para abrir o seletor): ");
+            String inputPath = sc.nextLine().trim();
+            if(inputPath.isEmpty()) {
+                originalValue = FileService.chooseFile();
+            } else {
+                originalValue = FileService.readFile(inputPath);
+            }
+            if(originalValue == null) {
+                System.out.println("Arquivo de entrada não pôde ser carregado.");
+                return null;
+            }
+
+            System.out.println("\nInforme o nome/caminho do arquivo de saída a ser gerado: ");
+            String outputPath = sc.nextLine().trim();
+            if(outputPath.isEmpty()) {
+                outputFile = FileService.getSaveLocation();
+            } else {
+                outputFile = new File(outputPath);
+            }
         } else if (funcOption == 2) {
             System.out.println("\nDigite o seu texto: ");
             String fullText = sc.nextLine();
@@ -61,6 +80,7 @@ public class Menu {
         }
 
         byte[] key = getVector("key", sc);
+        if(key == null) return null;
 
         System.out.println("""
                 Qual será o modo de operação a ser utilizado?
@@ -75,6 +95,7 @@ public class Menu {
 
         if(operationMode == 2) {
             initializationVector = getVector("iv", sc);
+            if(initializationVector == null) return null;
         }
 
         CypherData cypherData = new CypherData();
@@ -83,6 +104,7 @@ public class Menu {
         cypherData.setKey(key);
         cypherData.setInitializationVector(initializationVector);
         cypherData.setFinalObjectType(funcOption == 1 ? "file" : "text");
+        cypherData.setOutputFile(outputFile);
         cypherData.setOperation(option == 1 ? "encrypt" : "decrypt");
         cypherData.setOperationMode(operationMode == 1 ? "ECB" : "CBC");
 
@@ -102,12 +124,17 @@ public class Menu {
         byte[] bytedVector = new byte[16];
 
         for (int i = 0; i < 16; i++) {
-            int value = Integer.parseInt(stringVector[i].trim());
-            if (value < 0 || value > 255) {
-                System.out.println("\nCada byte"  + (type.equals("key") ? "da chave" : "do vetor") + " deve estar entre 0 e 255.");
+            try {
+                int value = Integer.parseInt(stringVector[i].trim());
+                if (value < 0 || value > 255) {
+                    System.out.println("\nCada byte "  + (type.equals("key") ? "da chave" : "do vetor") + " deve estar entre 0 e 255.");
+                    return null;
+                }
+                bytedVector[i] = (byte) value;
+            } catch (NumberFormatException e) {
+                System.out.println("\nValor numérico inválido: " + stringVector[i]);
                 return null;
             }
-            bytedVector[i] = (byte) value;
         }
 
         return bytedVector;

@@ -7,6 +7,7 @@ import org.aes.Services.FileService;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Objects;
 
@@ -18,31 +19,34 @@ public class AES {
             if(cypherData.getInitializationVector() == null || cypherData.getBytedText() == null) {
                 throw new RuntimeException("\nValores inválidos");
             }
-            cypherData.setBytedText(doXORwithIv(cypherData.getBytedText(), cypherData.getKey()));
         }
         if(cypherData.getOperation().equals("encrypt")) {
             EncryptationService encryptationService = new EncryptationService();
             byte[] encryptedText = encryptationService.encrypt(cypherData);
             if(cypherData.getFinalObjectType().equals("file")) {
-                File file = FileService.getSaveLocation();
+                File file = cypherData.getOutputFile() != null ? cypherData.getOutputFile() : FileService.getSaveLocation();
                 if(file != null) {
                     Files.write(file.toPath(), encryptedText);
+                    System.out.println("\nArquivo criptografado salvo com sucesso em: " + file.getAbsolutePath());
                 }
             } else {
+                System.out.println("\nTexto Criptografado (Hex):");
                 System.out.println(toStringTextInHex(encryptedText));
             }
         } else {
             DecryptationService decryptationService = new DecryptationService();
-            decryptationService.decrypt(cypherData);
+            byte[] decryptedText = decryptationService.decrypt(cypherData);
+            if(cypherData.getFinalObjectType().equals("file")) {
+                File file = cypherData.getOutputFile() != null ? cypherData.getOutputFile() : FileService.getSaveLocation();
+                if(file != null) {
+                    Files.write(file.toPath(), decryptedText);
+                    System.out.println("\nArquivo descriptografado salvo com sucesso em: " + file.getAbsolutePath());
+                }
+            } else {
+                System.out.println("\nTexto Descriptografado:");
+                System.out.println(new String(decryptedText, StandardCharsets.UTF_8));
+            }
         }
-    }
-
-    private byte[] doXORwithIv(byte[] text, byte[] iv) {
-        byte[] newText = new byte[text.length];
-        for(int i = 0; i < text.length; i++) {
-            newText[i] = (byte) (text[i] ^ iv[i % iv.length]);
-        }
-        return newText;
     }
 
     private String toStringTextInHex(byte[] bytes) {

@@ -22,7 +22,7 @@ public class MixColumns {
             for(int col = 0; col < 4; col++) {
                 int value = 0;
                 for(int i = 0; i < 4; i++) {
-                    int term = wordMatrix[i][col];
+                    int term = wordMatrix[i][col] & 0xFF;
                     value ^= galoisMultiplication
                             (term, Objects.equals(type, "inverted")
                                     ? Tables.INVERTED_MULTIPLICATION_MATRIX[row][i]
