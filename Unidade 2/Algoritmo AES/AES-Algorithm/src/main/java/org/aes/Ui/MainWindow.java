@@ -12,7 +12,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
 public class MainWindow extends JFrame {
 
@@ -543,30 +542,22 @@ public class MainWindow extends JFrame {
             byte[] key = KeyHelper.parseKeyOrIV(txtKey.getText(), "A Chave");
 
             byte[] iv = null;
-            if (isCBC) {
+            if(isCBC) {
                 iv = KeyHelper.parseKeyOrIV(txtIV.getText(), "O Vetor IV");
             }
 
-            byte[] inputBytes;
-            if (isArquivo) {
-                if (selectedInputFile == null || !selectedInputFile.exists()) {
+            File outputFile = null;
+            if(isArquivo) {
+                if(selectedInputFile == null || !selectedInputFile.exists()) {
                     throw new IllegalArgumentException("Por favor, selecione um arquivo de entrada.");
                 }
-                inputBytes = Files.readAllBytes(selectedInputFile.toPath());
-            } else {
-                String rawText = txtInputText.getText();
-                inputBytes = KeyHelper.parseInputText(rawText, !isEncrypt);
-            }
-
-            File outputFile = null;
-            if (isArquivo) {
                 JFileChooser saveChooser = new JFileChooser();
                 saveChooser.setDialogTitle("Salvar arquivo de saída como");
                 String defaultName = selectedInputFile.getName();
-                if (isEncrypt) {
+                if(isEncrypt) {
                     defaultName = defaultName + ".enc";
                 } else {
-                    if (defaultName.endsWith(".enc")) {
+                    if(defaultName.endsWith(".enc")) {
                         defaultName = defaultName.substring(0, defaultName.length() - 4);
                     } else {
                         defaultName = "decrypted_" + defaultName;
@@ -574,58 +565,80 @@ public class MainWindow extends JFrame {
                 }
                 saveChooser.setSelectedFile(new File(selectedInputFile.getParentFile(), defaultName));
                 int saveRes = saveChooser.showSaveDialog(this);
-                if (saveRes != JFileChooser.APPROVE_OPTION) {
+                if(saveRes != JFileChooser.APPROVE_OPTION) {
                     return;
                 }
                 outputFile = saveChooser.getSelectedFile();
+                if(selectedInputFile.getCanonicalFile().equals(outputFile.getCanonicalFile())) {
+                    throw new IllegalArgumentException("O arquivo de saída não pode ser o mesmo da entrada.");
+                }
             }
 
             CypherData cypherData = new CypherData();
             cypherData.setOperation(isEncrypt ? "encrypt" : "decrypt");
             cypherData.setOperationMode(isCBC ? "CBC" : "ECB");
             cypherData.setFinalObjectType(isArquivo ? "file" : "text");
-            cypherData.setBytedText(inputBytes);
             cypherData.setKey(key);
             cypherData.setInitializationVector(iv);
             cypherData.setOutputFile(outputFile);
 
-            long startTime = System.currentTimeMillis();
-            AES aes = new AES();
-            byte[] resultBytes = aes.execute(cypherData);
-            long elapsed = System.currentTimeMillis() - startTime;
-
-            resultPanel.setVisible(true);
-
-            if (isArquivo) {
-                Files.write(outputFile.toPath(), resultBytes);
-                selectedOutputFile = outputFile;
-
-                lblResultTitle.setText("Arquivo processado com sucesso! (" + elapsed + "ms)");
-                txtOutputResult.setText("Arquivo salvo com sucesso em:\n" + outputFile.getAbsolutePath() +
-                        "\n\nTamanho do arquivo gerado: " + (outputFile.length() / 1024) + " KB (" + outputFile.length() + " bytes)");
-                btnOpenFile.setVisible(true);
-                btnCopyResult.setText("Copiar Caminho");
+            if(isArquivo) {
+                cypherData.setInputFile(selectedInputFile);
             } else {
-                btnOpenFile.setVisible(false);
-                btnCopyResult.setText("Copiar Resultado");
-                if (isEncrypt) {
-                    String hex = AES.toStringTextInHex(resultBytes);
-                    lblResultTitle.setText("Texto Criptografado (" + elapsed + "ms, " + resultBytes.length + " bytes):");
-                    txtOutputResult.setText(hex);
+                String rawText = txtInputText.getText();
+                byte[] inputBytes = KeyHelper.parseInputText(rawText, !isEncrypt);
+                cypherData.setBytedText(inputBytes);
+            }
+
+            lblResultTitle.setText("Processando... aguarde");
+            resultPanel.setVisible(true);
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            btnExecutar.setEnabled(false);
+            ((JPanel) getContentPane()).paintImmediately(getContentPane().getBounds());
+
+            long startTime = System.currentTimeMillis();
+            try {
+                AES aes = new AES();
+                if(isArquivo) {
+                    if(isEncrypt) {
+                        aes.start(cypherData);
+                    } else {
+                        aes.start(cypherData);
+                    }
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    selectedOutputFile = outputFile;
+                    lblResultTitle.setText("Arquivo processado com sucesso! (" + elapsed + "ms)");
+                    txtOutputResult.setText("Arquivo salvo com sucesso em:\n" + outputFile.getAbsolutePath() +
+                            "\n\nTamanho do arquivo gerado: " + (outputFile.length() / 1024) + " KB (" + outputFile.length() + " bytes)");
+                    btnOpenFile.setVisible(true);
+                    btnCopyResult.setText("Copiar Caminho");
                 } else {
-                    String plainText = new String(resultBytes, StandardCharsets.UTF_8);
-                    lblResultTitle.setText("Texto Descriptografado (" + elapsed + "ms):");
-                    txtOutputResult.setText(plainText);
+                    byte[] resultBytes = aes.execute(cypherData);
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    btnOpenFile.setVisible(false);
+                    btnCopyResult.setText("Copiar Resultado");
+                    if(isEncrypt) {
+                        String hex = AES.toStringTextInHex(resultBytes);
+                        lblResultTitle.setText("Texto Criptografado (" + elapsed + "ms, " + resultBytes.length + " bytes):");
+                        txtOutputResult.setText(hex);
+                    } else {
+                        String plainText = new String(resultBytes, StandardCharsets.UTF_8);
+                        lblResultTitle.setText("Texto Descriptografado (" + elapsed + "ms):");
+                        txtOutputResult.setText(plainText);
+                    }
                 }
+            } finally {
+                setCursor(Cursor.getDefaultCursor());
+                btnExecutar.setEnabled(true);
             }
 
             revalidate();
             repaint();
             adjustWindowSize();
 
-        } catch (IllegalArgumentException ex) {
+        } catch(IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Aviso de Validação", JOptionPane.WARNING_MESSAGE);
-        } catch (Exception ex) {
+        } catch(Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Erro durante o processamento:\n" + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }

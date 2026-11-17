@@ -2,19 +2,16 @@ package org.aes.Core;
 
 import org.aes.Models.Tables;
 
-import java.util.Map;
-
 public class KeyExpansion {
+
+    private static final byte[] RCON = {
+        0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, (byte)0x80, 0x1B, 0x36
+    };
 
     public KeyExpansion() {}
 
     public byte[][][] keyExpansion(byte[][] keyMatrix) {
         byte[][][] roundKeys = new byte[11][4][4];
-
-        if(keyMatrix.length < 4) {
-            throw new RuntimeException("\nTamanho de chave inválido");
-        }
-
         byte[][] words = new byte[44][4];
 
         for(int j = 0; j < 4; j++) {
@@ -68,19 +65,7 @@ public class KeyExpansion {
     }
 
     private byte[] getRoundConstant(int actualRoundKey) {
-        Map<Integer,Byte> getConstant = Map.of(
-                1, (byte) 0x01,
-                2, (byte) 0x02,
-                3, (byte) 0x04,
-                4, (byte) 0x08,
-                5, (byte) 0x010,
-                6, (byte) 0x20,
-                7, (byte) 0x40,
-                8, (byte) 0x80,
-                9, (byte) 0x1B,
-                10, (byte) 0x36
-        );
-        return new byte[]{getConstant.get(actualRoundKey), 0x00, 0x00, 0x00};
+        return new byte[]{RCON[actualRoundKey], 0x00, 0x00, 0x00};
     }
 
     private byte[] doXOR(byte[] firstWord, byte[] secondWord) {

@@ -8,47 +8,63 @@ import org.aes.Services.FileService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Objects;
 
 public class AES {
     public AES() {}
 
-    public byte[] execute(CypherData cypherData) {
-        if(Objects.equals(cypherData.getOperationMode(), "CBC")) {
-            if(cypherData.getInitializationVector() == null || cypherData.getBytedText() == null) {
-                throw new RuntimeException("Valores inválidos: Vetor IV ou texto não informados.");
+    private void validate(CypherData cypherData) {
+        if(cypherData.getKey() == null || cypherData.getKey().length != 16) {
+            throw new IllegalArgumentException("\nChave inválida: deve possuir exatamente 16 bytes.");
+        }
+        if("CBC".equals(cypherData.getOperationMode())) {
+            if(cypherData.getInitializationVector() == null || cypherData.getInitializationVector().length != 16) {
+                throw new IllegalArgumentException("\nVetor IV inválido: deve possuir exatamente 16 bytes.");
             }
         }
+        if(!"file".equalsIgnoreCase(cypherData.getFinalObjectType())) {
+            if(cypherData.getBytedText() == null) {
+                throw new IllegalArgumentException("\nTexto de entrada não informado.");
+            }
+        }
+    }
+
+    public byte[] execute(CypherData cypherData) {
+        validate(cypherData);
         if("encrypt".equalsIgnoreCase(cypherData.getOperation())) {
-            EncryptationService encryptationService = new EncryptationService();
-            return encryptationService.encrypt(cypherData);
+            return new EncryptationService().encrypt(cypherData);
         } else {
-            DecryptationService decryptationService = new DecryptationService();
-            return decryptationService.decrypt(cypherData);
+            return new DecryptationService().decrypt(cypherData);
         }
     }
 
     public void start(CypherData cypherData) throws IOException {
-        byte[] resultBytes = execute(cypherData);
-        if("encrypt".equalsIgnoreCase(cypherData.getOperation())) {
-            if("file".equalsIgnoreCase(cypherData.getFinalObjectType())) {
-                File file = cypherData.getOutputFile() != null ? cypherData.getOutputFile() : FileService.getSaveLocation();
-                if(file != null) {
-                    Files.write(file.toPath(), resultBytes);
-                    System.out.println("\nArquivo criptografado salvo com sucesso em: " + file.getAbsolutePath());
-                }
+        validate(cypherData);
+        boolean isEncrypt = "encrypt".equalsIgnoreCase(cypherData.getOperation());
+        boolean isFile = "file".equalsIgnoreCase(cypherData.getFinalObjectType());
+
+        if(isFile) {
+            File outputFile = cypherData.getOutputFile();
+            if(outputFile == null) {
+                outputFile = FileService.getSaveLocation();
+            }
+            if(outputFile == null) {
+                System.out.println("\nOperação cancelada: nenhum arquivo de saída informado.");
+                return;
+            }
+            cypherData.setOutputFile(outputFile);
+
+            if(isEncrypt) {
+                new EncryptationService().encryptFile(cypherData);
+                System.out.println("\nArquivo criptografado salvo com sucesso em: " + outputFile.getAbsolutePath());
             } else {
-                System.out.println("\nTexto Criptografado (Hex):");
-                System.out.println(toStringTextInHex(resultBytes));
+                new DecryptationService().decryptFile(cypherData);
+                System.out.println("\nArquivo descriptografado salvo com sucesso em: " + outputFile.getAbsolutePath());
             }
         } else {
-            if("file".equalsIgnoreCase(cypherData.getFinalObjectType())) {
-                File file = cypherData.getOutputFile() != null ? cypherData.getOutputFile() : FileService.getSaveLocation();
-                if(file != null) {
-                    Files.write(file.toPath(), resultBytes);
-                    System.out.println("\nArquivo descriptografado salvo com sucesso em: " + file.getAbsolutePath());
-                }
+            byte[] resultBytes = execute(cypherData);
+            if(isEncrypt) {
+                System.out.println("\nTexto Criptografado (Hex):");
+                System.out.println(toStringTextInHex(resultBytes));
             } else {
                 System.out.println("\nTexto Descriptografado:");
                 System.out.println(new String(resultBytes, StandardCharsets.UTF_8));
@@ -57,9 +73,9 @@ public class AES {
     }
 
     public static String toStringTextInHex(byte[] bytes) {
-        if (bytes == null) return "";
+        if(bytes == null) return "";
         StringBuilder hex = new StringBuilder();
-        for (byte b : bytes) {
+        for(byte b : bytes) {
             hex.append(String.format("%02X", b & 0xFF));
         }
         return hex.toString();
@@ -67,13 +83,17 @@ public class AES {
 
     public static byte[] fromHexString(String hex) {
         String clean = hex.replaceAll("\\s+", "");
-        if (clean.length() % 2 != 0) {
+        if(clean.length() % 2 != 0) {
             throw new IllegalArgumentException("String hexadecimal com comprimento ímpar.");
         }
         byte[] data = new byte[clean.length() / 2];
-        for (int i = 0; i < clean.length(); i += 2) {
-            data[i / 2] = (byte) ((Character.digit(clean.charAt(i), 16) << 4)
-                                 + Character.digit(clean.charAt(i+1), 16));
+        for(int i = 0; i < clean.length(); i += 2) {
+            int hi = Character.digit(clean.charAt(i), 16);
+            int lo = Character.digit(clean.charAt(i + 1), 16);
+            if(hi < 0 || lo < 0) {
+                throw new IllegalArgumentException("Caractere hexadecimal inválido.");
+            }
+            data[i / 2] = (byte) ((hi << 4) + lo);
         }
         return data;
     }

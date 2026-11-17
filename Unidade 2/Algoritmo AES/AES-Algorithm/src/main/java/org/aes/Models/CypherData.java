@@ -11,6 +11,7 @@ public class CypherData {
     private String operationMode;
     private byte[] initializationVector;
     private File outputFile;
+    private File inputFile;
 
     public CypherData() {
     }
@@ -21,6 +22,14 @@ public class CypherData {
 
     public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;
+    }
+
+    public File getInputFile() {
+        return inputFile;
+    }
+
+    public void setInputFile(File inputFile) {
+        this.inputFile = inputFile;
     }
 
     public String getOperation() {

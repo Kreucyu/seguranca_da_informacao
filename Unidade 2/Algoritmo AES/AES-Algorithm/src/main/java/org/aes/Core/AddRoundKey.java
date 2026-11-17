@@ -1,7 +1,5 @@
 package org.aes.Core;
 
-import org.aes.Models.CypherData;
-
 public class AddRoundKey {
     public AddRoundKey() {}
 

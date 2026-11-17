@@ -48,7 +48,11 @@ public class Main {
             cypherData = Menu.loadMenuAndGetValues(sc);
             if (cypherData == null) continue;
             aes = new AES();
-            aes.start(cypherData);
+            try {
+                aes.start(cypherData);
+            } catch (Exception e) {
+                System.out.println("\nErro: " + e.getMessage());
+            }
         }
     }
 }
