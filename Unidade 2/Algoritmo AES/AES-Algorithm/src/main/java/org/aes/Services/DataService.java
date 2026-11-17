@@ -32,7 +32,7 @@ public class DataService {
         int paddingLength = paddedText[paddedText.length - 1] & 0xFF;
 
         if (paddingLength < 1 || paddingLength > 16) {
-            throw new IllegalArgumentException("Padding inválido");
+            throw new IllegalArgumentException("\nPadding inválido");
         }
 
         for (int i = paddedText.length - paddingLength; i < paddedText.length; i++) {

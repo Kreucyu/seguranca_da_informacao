@@ -1,4 +1,14 @@
-Trabalho Segurança da Informação - Algoritmo AES
+# Trabalho Segurança da Informação - Algoritmo AES
 
-Integrantes da Equipe:
+## Integrantes da Equipe:
 - Elcio Cleiton Wippel
+
+---
+
+## Como Executar
+
+### Interface Gráfica (Padrão):
+mvn compile exec:java -Dexec.mainClass="org.aes.Main"
+
+### Modo Terminal (CLI):
+java -cp target/classes org.aes.Main --cli
