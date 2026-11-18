@@ -34,19 +34,19 @@ public class MainWindow extends JFrame {
     private static final Font FONT_BOLD = new Font("Segoe UI", Font.BOLD, 13);
     private static final Font FONT_MONO = new Font("Consolas", Font.PLAIN, 12);
 
-    private JRadioButton rbCriptografar;
-    private JRadioButton rbDescriptografar;
+    private JRadioButton rbEncrypt;
+    private JRadioButton rbDecrypt;
 
     private JRadioButton rbECB;
     private JRadioButton rbCBC;
-    private JPanel ivPanel;
+    private JPanel initializationVectorPanel;
     private JTextField txtIV;
-    private JButton btnGenIV;
+    private JButton btnGenerateIV;
 
-    private JRadioButton rbTexto;
-    private JRadioButton rbArquivo;
-    private JPanel fileActionPanel;
-    private JButton btnChooseFile;
+    private JRadioButton rbText;
+    private JRadioButton rbFile;
+    private JPanel fileSelectionPanel;
+    private JButton btnSelectFile;
     private JLabel lblSelectedFile;
 
     private JPanel textInputPanel;
@@ -54,9 +54,9 @@ public class MainWindow extends JFrame {
     private JScrollPane txtScroll;
 
     private JTextField txtKey;
-    private JButton btnGenKey;
+    private JButton btnGenerateKey;
 
-    private JButton btnExecutar;
+    private JButton btnExecute;
 
     private JPanel resultPanel;
     private JLabel lblResultTitle;
@@ -89,24 +89,24 @@ public class MainWindow extends JFrame {
         contentPanel.setOpaque(false);
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 
-        JPanel panelAcao = createAcaoSection();
-        contentPanel.add(panelAcao);
+        JPanel actionPanel = createActionSection();
+        contentPanel.add(actionPanel);
         contentPanel.add(Box.createVerticalStrut(8));
 
-        JPanel panelModo = createModoOperacaoSection();
-        contentPanel.add(panelModo);
+        JPanel operationModePanel = createOperationModeSection();
+        contentPanel.add(operationModePanel);
         contentPanel.add(Box.createVerticalStrut(8));
 
-        JPanel panelTipoEntrada = createTipoEntradaSection();
-        contentPanel.add(panelTipoEntrada);
+        JPanel inputTypePanel = createInputTypeSection();
+        contentPanel.add(inputTypePanel);
         contentPanel.add(Box.createVerticalStrut(8));
 
-        JPanel panelChave = createChaveSection();
-        contentPanel.add(panelChave);
+        JPanel keyPanel = createKeySection();
+        contentPanel.add(keyPanel);
         contentPanel.add(Box.createVerticalStrut(8));
 
-        JPanel panelExecutar = createExecutarSection();
-        contentPanel.add(panelExecutar);
+        JPanel executePanel = createExecuteSection();
+        contentPanel.add(executePanel);
         contentPanel.add(Box.createVerticalStrut(8));
 
         resultPanel = createResultSection();
@@ -170,7 +170,7 @@ public class MainWindow extends JFrame {
         return lbl;
     }
 
-    private JPanel createAcaoSection() {
+    private JPanel createActionSection() {
         JPanel card = createCardWrapper();
 
         JLabel lblSection = createSectionLabel("Ação");
@@ -178,28 +178,28 @@ public class MainWindow extends JFrame {
         JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         rowPanel.setOpaque(false);
 
-        rbCriptografar = new JRadioButton("Criptografar", true);
-        rbDescriptografar = new JRadioButton("Descriptografar", false);
+        rbEncrypt = new JRadioButton("Criptografar", true);
+        rbDecrypt = new JRadioButton("Descriptografar", false);
 
-        styleRadioButton(rbCriptografar);
-        styleRadioButton(rbDescriptografar);
+        styleRadioButton(rbEncrypt);
+        styleRadioButton(rbDecrypt);
 
-        ButtonGroup bgAcao = new ButtonGroup();
-        bgAcao.add(rbCriptografar);
-        bgAcao.add(rbDescriptografar);
+        ButtonGroup bgAction = new ButtonGroup();
+        bgAction.add(rbEncrypt);
+        bgAction.add(rbDecrypt);
 
-        rbCriptografar.addActionListener(e -> updateState());
-        rbDescriptografar.addActionListener(e -> updateState());
+        rbEncrypt.addActionListener(e -> updateState());
+        rbDecrypt.addActionListener(e -> updateState());
 
         rowPanel.add(lblSection);
-        rowPanel.add(rbCriptografar);
-        rowPanel.add(rbDescriptografar);
+        rowPanel.add(rbEncrypt);
+        rowPanel.add(rbDecrypt);
 
         card.add(rowPanel, BorderLayout.CENTER);
         return card;
     }
 
-    private JPanel createModoOperacaoSection() {
+    private JPanel createOperationModeSection() {
         JPanel card = createCardWrapper();
 
         JLabel lblSection = createSectionLabel("Modo de operação");
@@ -213,12 +213,12 @@ public class MainWindow extends JFrame {
         styleRadioButton(rbECB);
         styleRadioButton(rbCBC);
 
-        ButtonGroup bgModo = new ButtonGroup();
-        bgModo.add(rbECB);
-        bgModo.add(rbCBC);
+        ButtonGroup bgMode = new ButtonGroup();
+        bgMode.add(rbECB);
+        bgMode.add(rbCBC);
 
-        ivPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        ivPanel.setOpaque(false);
+        initializationVectorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        initializationVectorPanel.setOpaque(false);
 
         JLabel lblIV = new JLabel("Vetor IV:");
         lblIV.setFont(FONT_BOLD);
@@ -228,14 +228,14 @@ public class MainWindow extends JFrame {
         styleTextField(txtIV);
         txtIV.setToolTipText("16 bytes: 16 caracteres, 32 hexadecimais ou 16 números separados por vírgula");
 
-        btnGenIV = new JButton("Gerar IV");
-        styleStandardButton(btnGenIV);
-        btnGenIV.addActionListener(e -> txtIV.setText(KeyHelper.generateRandomKeyOrIV()));
+        btnGenerateIV = new JButton("Gerar IV");
+        styleStandardButton(btnGenerateIV);
+        btnGenerateIV.addActionListener(e -> txtIV.setText(KeyHelper.generateRandomKeyOrIV()));
 
-        ivPanel.add(lblIV);
-        ivPanel.add(txtIV);
-        ivPanel.add(btnGenIV);
-        ivPanel.setVisible(false);
+        initializationVectorPanel.add(lblIV);
+        initializationVectorPanel.add(txtIV);
+        initializationVectorPanel.add(btnGenerateIV);
+        initializationVectorPanel.setVisible(false);
 
         rbECB.addActionListener(e -> updateState());
         rbCBC.addActionListener(e -> updateState());
@@ -243,13 +243,13 @@ public class MainWindow extends JFrame {
         rowPanel.add(lblSection);
         rowPanel.add(rbECB);
         rowPanel.add(rbCBC);
-        rowPanel.add(ivPanel);
+        rowPanel.add(initializationVectorPanel);
 
         card.add(rowPanel, BorderLayout.CENTER);
         return card;
     }
 
-    private JPanel createTipoEntradaSection() {
+    private JPanel createInputTypeSection() {
         JPanel card = createCardWrapper();
 
         JLabel lblSection = createSectionLabel("Tipo de entrada");
@@ -258,36 +258,36 @@ public class MainWindow extends JFrame {
         rowRadio.setOpaque(false);
         rowRadio.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        rbTexto = new JRadioButton("Texto", true);
-        rbArquivo = new JRadioButton("Arquivo", false);
+        rbText = new JRadioButton("Texto", true);
+        rbFile = new JRadioButton("Arquivo", false);
 
-        styleRadioButton(rbTexto);
-        styleRadioButton(rbArquivo);
+        styleRadioButton(rbText);
+        styleRadioButton(rbFile);
 
-        ButtonGroup bgTipo = new ButtonGroup();
-        bgTipo.add(rbTexto);
-        bgTipo.add(rbArquivo);
+        ButtonGroup bgType = new ButtonGroup();
+        bgType.add(rbText);
+        bgType.add(rbFile);
 
         rowRadio.add(lblSection);
-        rowRadio.add(rbTexto);
-        rowRadio.add(rbArquivo);
+        rowRadio.add(rbText);
+        rowRadio.add(rbFile);
 
-        fileActionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 4));
-        fileActionPanel.setOpaque(false);
-        fileActionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        fileActionPanel.setBorder(new EmptyBorder(4, 0, 2, 0));
+        fileSelectionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 4));
+        fileSelectionPanel.setOpaque(false);
+        fileSelectionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fileSelectionPanel.setBorder(new EmptyBorder(4, 0, 2, 0));
 
-        btnChooseFile = new JButton("Escolher arquivo");
-        styleStandardButton(btnChooseFile);
-        btnChooseFile.addActionListener(e -> handleChooseInputFile());
+        btnSelectFile = new JButton("Escolher arquivo");
+        styleStandardButton(btnSelectFile);
+        btnSelectFile.addActionListener(e -> handleChooseInputFile());
 
         lblSelectedFile = new JLabel("Nenhum arquivo selecionado");
         lblSelectedFile.setFont(FONT_REGULAR);
         lblSelectedFile.setForeground(COLOR_TEXT_MUTED);
 
-        fileActionPanel.add(btnChooseFile);
-        fileActionPanel.add(lblSelectedFile);
-        fileActionPanel.setVisible(false);
+        fileSelectionPanel.add(btnSelectFile);
+        fileSelectionPanel.add(lblSelectedFile);
+        fileSelectionPanel.setVisible(false);
 
         textInputPanel = new JPanel(new BorderLayout(4, 4));
         textInputPanel.setOpaque(false);
@@ -322,17 +322,17 @@ public class MainWindow extends JFrame {
         centerPanel.setOpaque(false);
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.add(rowRadio);
-        centerPanel.add(fileActionPanel);
+        centerPanel.add(fileSelectionPanel);
         centerPanel.add(textInputPanel);
 
-        rbTexto.addActionListener(e -> updateState());
-        rbArquivo.addActionListener(e -> updateState());
+        rbText.addActionListener(e -> updateState());
+        rbFile.addActionListener(e -> updateState());
 
         card.add(centerPanel, BorderLayout.CENTER);
         return card;
     }
 
-    private JPanel createChaveSection() {
+    private JPanel createKeySection() {
         JPanel card = createCardWrapper();
 
         JLabel lblSection = new JLabel("Chave (16 bytes / 128 bits)");
@@ -347,29 +347,29 @@ public class MainWindow extends JFrame {
         styleTextField(txtKey);
         txtKey.setToolTipText("Aceita 16 caracteres, 32 hexadecimais ou 16 números entre 0 e 255 separados por vírgula");
 
-        btnGenKey = new JButton("Gerar Chave");
-        styleStandardButton(btnGenKey);
-        btnGenKey.addActionListener(e -> txtKey.setText(KeyHelper.generateRandomKeyOrIV()));
+        btnGenerateKey = new JButton("Gerar Chave");
+        styleStandardButton(btnGenerateKey);
+        btnGenerateKey.addActionListener(e -> txtKey.setText(KeyHelper.generateRandomKeyOrIV()));
 
         rowPanel.add(txtKey, BorderLayout.CENTER);
-        rowPanel.add(btnGenKey, BorderLayout.EAST);
+        rowPanel.add(btnGenerateKey, BorderLayout.EAST);
 
         card.add(lblSection, BorderLayout.NORTH);
         card.add(rowPanel, BorderLayout.CENTER);
         return card;
     }
 
-    private JPanel createExecutarSection() {
+    private JPanel createExecuteSection() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         panel.setOpaque(false);
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
 
-        btnExecutar = new JButton("Executar");
-        styleStandardButton(btnExecutar);
-        btnExecutar.addActionListener(e -> executeAES());
+        btnExecute = new JButton("Executar");
+        styleStandardButton(btnExecute);
+        btnExecute.addActionListener(e -> executeAES());
 
-        panel.add(btnExecutar);
+        panel.add(btnExecute);
         return panel;
     }
 
@@ -478,16 +478,16 @@ public class MainWindow extends JFrame {
 
     private void updateState() {
         boolean isCBC = rbCBC.isSelected();
-        ivPanel.setVisible(isCBC);
+        initializationVectorPanel.setVisible(isCBC);
 
-        boolean isArquivo = rbArquivo.isSelected();
-        fileActionPanel.setVisible(isArquivo);
-        textInputPanel.setVisible(!isArquivo);
+        boolean isFile = rbFile.isSelected();
+        fileSelectionPanel.setVisible(isFile);
+        textInputPanel.setVisible(!isFile);
 
-        boolean isCriptografar = rbCriptografar.isSelected();
-        btnExecutar.setText(isCriptografar ? "Criptografar" : "Descriptografar");
+        boolean isEncrypt = rbEncrypt.isSelected();
+        btnExecute.setText(isEncrypt ? "Criptografar" : "Descriptografar");
 
-        if (isCriptografar) {
+        if (isEncrypt) {
             txtInputText.setToolTipText("Digite o texto legível a ser criptografado");
         } else {
             txtInputText.setToolTipText("Digite ou cole o texto cifrado em hexadecimal");
@@ -535,9 +535,9 @@ public class MainWindow extends JFrame {
 
     private void executeAES() {
         try {
-            boolean isEncrypt = rbCriptografar.isSelected();
+            boolean isEncrypt = rbEncrypt.isSelected();
             boolean isCBC = rbCBC.isSelected();
-            boolean isArquivo = rbArquivo.isSelected();
+            boolean isFile = rbFile.isSelected();
 
             byte[] key = KeyHelper.parseKeyOrIV(txtKey.getText(), "A Chave");
 
@@ -547,7 +547,7 @@ public class MainWindow extends JFrame {
             }
 
             File outputFile = null;
-            if(isArquivo) {
+            if(isFile) {
                 if(selectedInputFile == null || !selectedInputFile.exists()) {
                     throw new IllegalArgumentException("Por favor, selecione um arquivo de entrada.");
                 }
@@ -577,12 +577,12 @@ public class MainWindow extends JFrame {
             CypherData cypherData = new CypherData();
             cypherData.setOperation(isEncrypt ? "encrypt" : "decrypt");
             cypherData.setOperationMode(isCBC ? "CBC" : "ECB");
-            cypherData.setFinalObjectType(isArquivo ? "file" : "text");
+            cypherData.setFinalObjectType(isFile ? "file" : "text");
             cypherData.setKey(key);
             cypherData.setInitializationVector(iv);
             cypherData.setOutputFile(outputFile);
 
-            if(isArquivo) {
+            if(isFile) {
                 cypherData.setInputFile(selectedInputFile);
             } else {
                 String rawText = txtInputText.getText();
@@ -593,13 +593,13 @@ public class MainWindow extends JFrame {
             lblResultTitle.setText("Processando... aguarde");
             resultPanel.setVisible(true);
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            btnExecutar.setEnabled(false);
+            btnExecute.setEnabled(false);
             ((JPanel) getContentPane()).paintImmediately(getContentPane().getBounds());
 
             long startTime = System.currentTimeMillis();
             try {
                 AES aes = new AES();
-                if(isArquivo) {
+                if(isFile) {
                     if(isEncrypt) {
                         aes.start(cypherData);
                     } else {
@@ -629,7 +629,7 @@ public class MainWindow extends JFrame {
                 }
             } finally {
                 setCursor(Cursor.getDefaultCursor());
-                btnExecutar.setEnabled(true);
+                btnExecute.setEnabled(true);
             }
 
             revalidate();
